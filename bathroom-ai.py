@@ -2,9 +2,15 @@ import RPi.GPIO as GPIO #import the GPIO library
 import time
 import requests
 import json
+import os
 
+TOKEN = os.environ['TOKEN']
 BASE_URL = "https://bathroom-ai.herokuapp.com/api/rooms"
-CHANGE_URL = BASE_URL + "/%s/%s"
+CHANGE_URL = BASE_URL + "/%s/%s?" + TOKEN
+
+def add_token(url):
+    return "%s?token=%s" % (url, TOKEN)
+
 FEMALE = 8
 MALE = 10
 
@@ -16,14 +22,15 @@ GPIO.setup(FEMALE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(MALE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-response = requests.get(BASE_URL)
+response = requests.get(add_token(BASE_URL)
 result = dict(zip([x['id'] for x in r.json()], [x['occupied'] for x in r.json()]))
 
 femaleDoorOccupied = result[ROOM_F_ID]
 maleDoorOccupied = result[ROOM_M_ID]
 
+
 def change_room_status(id, action):
-     requests.post(CHANGE_URL % (id, action))
+     requests.post(add_token(CHANGE_URL) % (id, action))
 
 def free(id):
     change_room_status(id, FREE_ACTION)
